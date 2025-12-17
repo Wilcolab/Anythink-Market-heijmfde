@@ -15,6 +15,8 @@ var state = states.start;
 var operand1 = 0;
 var operand2 = 0;
 var operation = null;
+var memory = 0;
+var history = [];
 
 function calculate(operand1, operand2, operation) {
     var uri = location.origin + "/arithmetic";
@@ -33,6 +35,9 @@ function calculate(operand1, operand2, operation) {
         case '/':
             uri += "?operation=divide";
             break;
+            case '^':
+                uri += "?operation=power";
+                break;
         default:
             setError();
             return;
@@ -50,12 +55,54 @@ function calculate(operand1, operand2, operation) {
 
         if (http.status == 200) {
             var response = JSON.parse(http.responseText);
-            setValue(response.result);
+                setValue(response.result);
+                pushHistory(operand1, operand2, operation, response.result);
         } else {
             setError();
         }
     };
     http.send(null);
+}
+
+function pushHistory(op1, op2, op, result) {
+    var entry = { operand1: op1, operand2: op2, operation: op, result: result };
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    renderHistory();
+}
+
+function renderHistory() {
+    var list = document.getElementById('historyList');
+    if (!list) return;
+    list.innerHTML = '';
+    history.forEach(function (h, idx) {
+        var li = document.createElement('li');
+        li.setAttribute('data-idx', idx);
+        li.innerHTML = '<span class="expr">' + h.operand1 + ' ' + h.operation + ' ' + h.operand2 + '</span>' +
+                       '<span class="res">' + h.result + '</span>';
+        li.addEventListener('click', function () {
+            setValue(h.result);
+            state = states.complete;
+        });
+        list.appendChild(li);
+    });
+}
+
+function memoryClear() {
+    memory = 0;
+}
+
+function memoryRecall() {
+    setValue(memory);
+    state = states.complete;
+}
+
+function memoryAdd() {
+    memory = Number(memory) + Number(getValue());
+}
+
+function memorySubtract() {
+    memory = Number(memory) - Number(getValue());
 }
 
 function clearPressed() {
@@ -140,6 +187,8 @@ document.addEventListener('keypress', (event) => {
         decimalPressed();
     } else if (event.key.match(/^[-*+/]$/)) {
         operationPressed(event.key);
+        } else if (event.key == '^') {
+            operationPressed('^');
     } else if (event.key == '=') {
         equalPressed();
     }
