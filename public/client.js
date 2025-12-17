@@ -35,9 +35,10 @@ function calculate(operand1, operand2, operation) {
         case '/':
             uri += "?operation=divide";
             break;
-            case '^':
-                uri += "?operation=power";
-                break;
+        case '^':
+            // Copilot-suggested: handle power/exponent operator
+            uri += "?operation=power";
+            break;
         default:
             setError();
             return;
@@ -212,26 +213,12 @@ function setValue(n) {
         displayValue = displayValue.toExponential(3);
     }
 
-    var chars = displayValue.toString().split("");
-    var html = "";
-
-    for (var c of chars) {
-        if (c == '-') {
-            html += "<span class=\"resultchar negative\">" + c + "</span>";
-        } else if (c == '.') {
-            html += "<span class=\"resultchar decimal\">" + c + "</span>";
-        } else if (c == 'e') {
-            html += "<span class=\"resultchar exponent\">e</span>";
-        } else if (c != '+') {
-            html += "<span class=\"resultchar digit" + c + "\">" + c + "</span>";
-        }
-    }
-
-    document.getElementById("result").innerHTML = html;
+    // Render plain text into the result box (legacy sprite digits hidden in new UI)
+    document.getElementById("result").textContent = displayValue;
 }
 
 function setError(n) {
-    document.getElementById("result").innerHTML = "ERROR";
+    document.getElementById("result").textContent = "ERROR";
 }
 
 function setLoading(loading) {
